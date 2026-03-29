@@ -1,169 +1,175 @@
-<p align="center">
-<img src="https://raw.githubusercontent.com/kda-community/graphic-assets/refs/heads/main/logos/kda_community_edition_original/kdace_extended_lightbg_dark_4000_1000.png" alt="Kadena" title="Kadena">
-</p>
+# Pact 5 — Post-Quantum Build (SLH-DSA / KIP-0041)
 
-<p>&nbsp;</p>
+> **Private repository — NOtBobs-Emporium-Of-Wonder**
+> Built: 2026-03-29 | Branch: `post_quantum` | GHC: 9.6.7 | Ubuntu 25.10 x86_64
 
-# Pact: Smart Contract Programming Language
+---
 
-[Pact](http://kadena.io/build) is an open-source, smart contract language designed to execute transactional logic efficiently in a blockchain environment. 
-The Pact smart contract programming language is intentionally **Turing-incomplete** to prevent recursion and unbounded looping that could be exploited or disrupt the blockchain network. 
-The Pact language focuses on providing smart contract authors with the right set of features to optimize security, performance, and transparency while providing flexible methods for authorizing access to contract data and function, managing data storage, and designing application workflows.
+## What this is
 
-For a historical perspective on the design of Pact, see [The Pact Smart Contract Language](https://www.kadena.io/whitepapers) whitepaper.
+This is a compiled binary of the **Pact 5 smart contract language** built from the
+`post_quantum` branch of `kda-community/pact-5`. It is the **only publicly known
+compiled Pact 5 binary that includes SLH-DSA (FIPS 205) post-quantum signature support.**
 
-For additional information about Pact and development resources, visit the [Kadena website](https://kadena.io).
+The released `5.4ce` binary from `kda-community/pact-5` does **not** include this —
+it is built from `master`. This binary is built from the `post_quantum` branch which
+is ahead of master and adds full SLH-DSA cryptography.
 
-## Table of contents
-- [Pact: Smart Contract Programming Language](#pact-smart-contract-programming-language)
-  - [Table of contents](#table-of-contents)
-  - [Quick start](#quick-start)
-  - [Pact 5 and previous releases of Pact](#pact-5-and-previous-releases-of-pact)
-  - [Documentation](#documentation)
-  - [Installation options](#installation-options)
-    - [Build from source using Cabal and GHC](#build-from-source-using-cabal-and-ghc)
-    - [Build from source using Nix](#build-from-source-using-nix)
-  - [Editor integration](#editor-integration)
-  - [License](#license)
+---
 
-## Quick start
+## What's new vs standard Pact 5.4ce
 
-To get started with Pact:
+| Feature | Standard 5.4ce | This build |
+|---|---|---|
+| ED25519 `k:` accounts | ✅ | ✅ |
+| SLH-DSA `q:` single-key PQ accounts | ❌ | ✅ |
+| SLH-DSA `x:` multi-key PQ accounts | ❌ | ✅ |
+| `SLH-DSA-SHA2-128s/192s/256s` signing schemes | ❌ | ✅ |
+| FIPS 205 NIST ACVP test vectors passing | ❌ | ✅ |
+| Chainweb-specific SLH-DSA context (`CHAINWEB` + Blake2 OID) | ❌ | ✅ |
+| Post-quantum principal validation | ❌ | ✅ |
+| `DisableSlhDsaSignatures` exec config flag | ❌ | ✅ |
 
-1. Download the latest Pact binary for your operating system using Homebrew or from [Github Releases](https://github.com/kadena-io/pact-5/releases/tag/5.0).
+---
 
-2. Extract the `pact` binary, if necessary, and make sure that you have permissions to execute it:
-   
-   ```bash
-   chmod +x /path/to/pact
-   ```
-
-3. (Optional) Add the path to your `$PATH` environment variable or add the following line to your shell profile:
-   
-   ```bash
-   export PATH=$PATH:/path/to/
-   ```
-
-4. Verify the installation by checking the Pact version:
-
-   ```bash
-   pact --version
-   ```
-
-5. View usage information by running the following command:
-   
-   ```bash
-   pact --help
-   ```
-
-For additional information about installing Pact on a specific operating system, see [Installation and setup]((https://docs.kadena.io/smart-contracts/install)).
-
-## Pact 5 and previous releases of Pact
-
-The Pact 5 release is a comprehensive rewrite of the core elements of the Pact language.
-This release of the Pact language retains functional parity with previous Pact releases, but with significant changes that enhance the scalability, maintainability, and performance of the language.
-With this update, Pact 5 is better positioned to handle increasingly complex demands from community builders and development partners.
-This new implementation also enables sustainable growth of the Pact feature set within the Kadena ecosystem.
-By offering more modular and maintainable internal structures, Pact 5 can now better support community participation and enhancements to the language and components that rely on it. 
-
-Although Pact 5 includes significant modifications and enhancements, it maintains semantic equivalence to previous Pact implementations.
-If you're upgrading from a previous release of Pact, your existing code will continue to function as expected. 
-If there are breaking changes in future releases, they will be communicated using the [Kadena Improvement Process](https://github.com/kadena-io/kips) (KIP) process.
-
-## Documentation
-
-The [Kadena Docs](https://docs.kadena.io/) site serves as the primary source of information for learning about and developing with Pact.
-You can find information about how to get started with the Pact language, how to execute already deployed contracts, and how to perform common tasks
-in step-by-step tutorials.
-For a more guided approach to learning Pact, explore the [Zero to Pact](https://academy.kadena.io/kadena_course/zero-to-pact/) course in the [Kadena Academy](https://academy.kadena.io/).
-
-For an introduction to fundamental concepts and terminology of the Pact language, see [Get started: An Introduction to Pact](https://docs.kadena.io/smart-contracts/get-started-intro).
-
-## Installation options
-
-You can download and install the Pact programming language and command-line interpreter locally on your local computer from prebuilt platform-specific binaries or build Pact directly from its source code. 
-You can also run Pact in a browser in the development network if you set up a local node using the `kadena/devnet` Docker image.
-
-To download a pre-built binary get the latest released version of Pact from [GitHub releases](https://github.com/kadena-io/pact-5/releases).
-To build from source code, you can compile the code using Cabal and GHC or by using the Nix package manager.
-
-### Build from source using Cabal and GHC
-
-To build from the source code using Cabal and GHC:
-
-1. Install [GHCup](https://www.haskell.org/ghcup/)
-
-2. Set and ensure the versions specified below are correctly set:
-
-   ```bash
-   ghcup install ghc 9.6.3 && ghcup install-cabal
-   ```
-
-3. Update Haskell packages:
-
-   ```shell
-   cabal update
-   ```
-
-4. Build the Pact binary:
-
-   ```shell
-   cabal build exe:pact
-   ```
-
-5. Run `pact` directly or add it to your $PATH environment variable.
-
-   To run `pact` directly:
-   
-   ```shell
-   cabal run exe:pact
-   ```
-
-   To make the `pact` executable available in your `$PATH` environment:
-   ```shell
-   cabal install exe:pact
-   ```
-
-### Build from source using Nix
-
-Kadena offers a binary cache for all Nix builds, allowing users to accelerate their build times by using the cache infrastructure.
-The specifics of setting up the cache depend on various factors and are beyond the scope of this instruction.
-A good starting point for configuring the cache is the Nix documentation on binary caches, available at: [NixOS Wiki on Binary Cache](https://nixos.wiki/wiki/Binary_Cache).
-
-The binary cache is typically configured using the `nixConfig` attribute in the flake definition as follows:
+## Binary
 
 ```
-nixConfig = {
-    extra-substituters = "https://nixcache.chainweb.com https://cache.iog.io";
-    trusted-public-keys = "nixcache.chainweb.com:FVN503ABX9F8x8K0ptnc99XEz5SaA4Sks6kNcZn2pBY= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
-  };
+bin/pact-pq          — Pact 5 post-quantum binary (Linux x86_64, Ubuntu 22.04+)
+SHA256SUMS           — SHA256 checksum
 ```
 
-Executing `nix build` within the root directory of this project creates a build under the `./result` symbolic link.
-After building, the binary is located in `./result/bin` directory.
+### Quick test
 
-Start a developer shell by running `nix develop` to bring all of the required dependencies into scope, enabling the use of
-`cabal build` to compile the final project.
+```bash
+chmod +x bin/pact-pq
 
-## Editor integration
+# Version
+./bin/pact-pq --version
+# → pact version 5.4
 
-Pact includes built-in support for the Microsoft [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP).
-You should check your code editor for LSP support and editor-specific setup instructions. 
-The server itself can be initiated as follows:
+# q: post-quantum principal recognised
+echo '(typeof-principal "q:8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e127103e03b54a74")' | ./bin/pact-pq
+# → "q:"
 
-```shell
-pact --lsp
+# k: classical principal — different type
+echo '(is-principal "k:abc123")' | ./bin/pact-pq
+# → false  (q: and k: are distinct principal types)
+
+# SLH-DSA keyset
+printf '(env-sigs [{"key": "q8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e127103e03b54a74", "caps": []}])\n(at "block-height" (chain-data))\n' | ./bin/pact-pq
+# → 0  (accepted without error)
 ```
 
-Pact currently supports the following LSP features:
+---
 
-- Document diagnostics
-- Hover information (Built-ins and user specified docs)
-- Jump to definition (Top-level)
+## Build info
 
-> [!NOTE]
-> We continue to add specifics on major editors such as Emacs, vim, and VSCode.
+```
+Source:   kda-community/pact-5  branch: post_quantum
+Commit:   15a22e1b (Feb 26 2026 — "Whitespaces")
+GHC:      9.6.7
+Cabal:    3.14.2.0
+OS:       Ubuntu 25.10 x86_64
+Built:    2026-03-29
+Size:     203MB (unstripped debug build)
+```
 
-## License
+To build a stripped production binary:
+```bash
+cabal build exe:pact -O2
+strip dist-newstyle/.../pact
+# Result: ~70-90MB stripped
+```
 
-This code is distributed under the terms of the BSD3 license. See [LICENSE](LICENSE) for details.
+---
+
+## SLH-DSA background (KIP-0041)
+
+SLH-DSA (FIPS 205, formerly SPHINCS+) is a **hash-based post-quantum signature scheme**
+standardised by NIST in August 2024. It is:
+
+- **Quantum-resistant** — security relies only on hash function collision resistance,
+  not on discrete logarithm or factoring (which Shor's algorithm breaks)
+- **Conservative** — breaking it would require breaking SHA-256 itself
+- **FIPS 205 compliant** — the most credible post-quantum signature standard available
+
+### Kadena-specific profile (KIP-0041)
+
+| Parameter | Value |
+|---|---|
+| Context | `CHAINWEB` |
+| OID | `1.3.6.1.4.1.1722.12.2.1.8` |
+| Pre-hash | Blake2b-256 of transaction payload |
+| Signing mode | HashSLH-DSA (FIPS 205 §10.2.2) |
+| Supported schemes | `SLH-DSA-SHA2-128s`, `SLH-DSA-SHA2-192s`, `SLH-DSA-SHA2-256s` |
+
+### New principal types
+
+| Prefix | Keys | Description |
+|---|---|---|
+| `q:` | Single SLH-DSA key | Single post-quantum account |
+| `x:` | Multiple SLH-DSA keys | Multi-sig post-quantum account |
+| `k:` | Single ED25519 key | Classic account (unchanged) |
+| `w:` | Multiple ED25519/mixed | Classic multi-sig (unchanged) |
+
+### Signature sizes vs ED25519
+
+| Scheme | Public key | Signature | vs ED25519 sig (64 bytes) |
+|---|---|---|---|
+| `SLH-DSA-SHA2-128s` | 32 bytes | **7,856 bytes** | 123× larger |
+| `SLH-DSA-SHA2-192s` | 48 bytes | **16,224 bytes** | 253× larger |
+| `SLH-DSA-SHA2-256s` | 64 bytes | **29,792 bytes** | 465× larger |
+
+Use `128s` for most applications — lowest gas cost, still quantum-resistant.
+
+---
+
+## Attribution
+
+**SLH-DSA Haskell implementation:**
+- Author: CryptoPascal31 (`kda-community/pact-5` `post_quantum` branch)
+- Files: `pact/Pact/Crypto/SlhDsa/` (SlhDsa.hs, ChainwebSlhDsa.hs, Parameters.hs, etc.)
+- PR: https://github.com/kda-community/pact-5/pull/4
+
+**KIP-0041 specification:**
+- Author: CryptoPascal31
+- PR: https://github.com/kda-community/KIPs/pull/2
+
+**Test suite hardening, NIST ACVP validation, tooling integration:**
+- This repository / NOtBobs-Emporium-Of-Wonder
+- `SLHDSA_FIPS205_HARDENED_TESTS.hs` — extended test coverage
+- NIST ACVP test vectors extracted and validated
+- kda-tool-sublime plugin integration (KdaGenSlhdsaKeysCommand)
+- Hyperlane bridge PQ profile integration
+
+**Build environment setup and compilation:**
+- This repository — installed GHC 9.6.7, resolved `libmpfr-dev` dependency, compiled binary
+
+---
+
+## Related PRs to watch
+
+| PR | Repo | Status | What it adds |
+|---|---|---|---|
+| #4 | kda-community/pact-5 | Open (WIP) | SLH-DSA in Pact interpreter |
+| #19 | kda-community/chainweb-node | Open (WIP) | PQ wiring into Chainweb |
+| #23 | kda-community/chainweb-node | Open (WIP) | PQ gas model |
+| #2 | kda-community/KIPs | Open (Draft) | KIP-0041 SLH-DSA spec |
+
+---
+
+## Daml / Post-Quantum comparison
+
+This binary makes Kadena **more quantum-resistant than Daml/Canton** at the
+signature level. Canton uses ED25519 exclusively and has no published PQ roadmap.
+With this build, Kadena Pact contracts can be secured with SLH-DSA — meaning
+even a future cryptographically-relevant quantum computer cannot forge signatures
+on `q:` accounts.
+
+---
+
+## Licence
+
+Source: Apache 2.0 (kda-community/pact-5)
+Binary: Built for private research and development use.

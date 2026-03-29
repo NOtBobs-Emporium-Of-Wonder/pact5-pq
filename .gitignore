@@ -39,3 +39,4 @@ cabal.project.local*
 *.sqlite
 .vscode
 *.DS_Store
+bin/
