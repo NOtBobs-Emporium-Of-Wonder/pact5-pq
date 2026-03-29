@@ -127,24 +127,103 @@ Use `128s` for most applications — lowest gas cost, still quantum-resistant.
 
 ## Attribution
 
-**SLH-DSA Haskell implementation:**
-- Author: CryptoPascal31 (`kda-community/pact-5` `post_quantum` branch)
-- Files: `pact/Pact/Crypto/SlhDsa/` (SlhDsa.hs, ChainwebSlhDsa.hs, Parameters.hs, etc.)
-- PR: https://github.com/kda-community/pact-5/pull/4
+This build is the result of two bodies of work. Both are required — neither alone
+produced the compiled binary you have here.
 
-**KIP-0041 specification:**
-- Author: CryptoPascal31
+---
+
+### CryptoPascal31 (KadenaFriend) — Core SLH-DSA implementation
+
+GitHub: https://github.com/CryptoPascal31
+Branch: `kda-community/pact-5` `post_quantum`
+17 commits, all cryptographic and protocol implementation work.
+
+**What CryptoPascal wrote (every line of SLH-DSA crypto):**
+
+| File | What it does |
+|---|---|
+| `pact/Pact/Crypto/SlhDsa/SlhDsa.hs` | Full FIPS 205 SLH-DSA algorithm — WOTS+, FORS, HT, XMSS |
+| `pact/Pact/Crypto/SlhDsa/ChainwebSlhDsa.hs` | Chainweb-specific profile: CHAINWEB context, Blake2 OID, `verifySig` entry point |
+| `pact/Pact/Crypto/SlhDsa/Parameters.hs` | SHA2-128s/192s/256s parameter sets (FIPS 205 §11) |
+| `pact/Pact/Crypto/SlhDsa/MessageDigest.hs` | Message digest / Hmsg computation |
+| `pact/Pact/Crypto/SlhDsa/Signature.hs` | Signature parsing and structure |
+| `pact/Pact/Crypto/SlhDsa/Addresses.hs` | FIPS 205 address structures |
+| `pact/Pact/Crypto/SlhDsa/Utils.hs` | SHA-256/512, SPHINCS+ hash utilities |
+| `pact/Pact/Core/Principal.hs` | `q:` and `x:` principal types added |
+| `pact/Pact/Core/Scheme.hs` | `SlhDsaSha128s/192s/256s` PPKScheme variants |
+| `pact/Pact/Core/Guards.hs` | SLH-DSA keyset guard support |
+| `pact/Pact/Core/Environment/Types.hs` | `DisableSlhDsaSignatures` exec config flag |
+| `pact/Pact/Core/IR/Eval/CEK/CoreBuiltin.hs` | SLH-DSA integration into the evaluator |
+| `pact/Pact/Core/IR/Eval/Runtime/Utils.hs` | SLH-DSA runtime verification wiring |
+| `pact-request-api/Pact/Core/Command/Types.hs` | SLH-DSA in transaction command types |
+| `pact-request-api/Pact/Core/Command/Crypto.hs` | SLH-DSA in command crypto layer |
+| `pact-request-api/Pact/Core/Command/SigData.hs` | SLH-DSA in signature data structures |
+| `gasmodel/Pact/Core/GasModel/SigsBench.hs` | Gas benchmarks for SLH-DSA signature verification |
+| `pact-tests/Pact/Core/Test/SlhSignaturesTests.hs` | Original Chainweb SLH-DSA test vectors (key1/key2/key3, sig0–sig5) |
+| `pact-tests/Pact/Core/Test/PrincipalTests.hs` | q: / x: principal validation tests |
+| `pact-tests/Pact/Core/Test/SignatureSchemeTests.hs` | Signature scheme tests |
+| `pact-tests/pact-tests/keyset-formats.repl` | SLH-DSA keyset format REPL tests |
+| `pact-tests/pact-tests/principals.repl` | q: / x: principal REPL tests |
+| `pact-repl/Pact/Core/IR/Eval/Direct/ReplBuiltin.hs` | SLH-DSA support in REPL builtins |
+
+**Commit history (oldest → newest):**
+```
+04f9d97a  Implementation of SLH-DSA
+3b84088b  Fix with GHC 9.8
+84874e83  Add SLH-DSA Gas benchmarks
+1275a3c6  Don't return a bool for SLH signature verification + Use Pact schemes
+ac779d68  Enable SLH DSA signatures
+cbf0f142  Merge branch 'master' into post_quantum
+15d86e13  Enable reading SLH keysets
+cccf6d9a  Implement q and x accounts => Tests still needed
+377f2d43  Improve signatures benchmark
+2ce154b9  Merge branch 'master' into post_quantum
+74c6861a  Fix missing deps
+51b8e96f  Benchmark WebAuthn signatures
+812f8213  Add principal tests for Post-quantum
+79056130  Add the DisableSlhDsaSignatures in doc
+a9fe9eb6  Use ASN1 lib to compute Blake2 OID
+1498f9d2  Fix tests
+15a22e1b  Whitespaces
+```
+
+**KIP-0041 specification** (authored by CryptoPascal31):
 - PR: https://github.com/kda-community/KIPs/pull/2
+- Defines `q:`/`x:` principals, HD derivation, gas schedule, FIPS 205 §10.2.2 profile
 
-**Test suite hardening, NIST ACVP validation, tooling integration:**
-- This repository / NOtBobs-Emporium-Of-Wonder
-- `SLHDSA_FIPS205_HARDENED_TESTS.hs` — extended test coverage
-- NIST ACVP test vectors extracted and validated
-- kda-tool-sublime plugin integration (KdaGenSlhdsaKeysCommand)
-- Hyperlane bridge PQ profile integration
+---
 
-**Build environment setup and compilation:**
-- This repository — installed GHC 9.6.7, resolved `libmpfr-dev` dependency, compiled binary
+### NOtBobs-Emporium-Of-Wonder — Test hardening, NIST validation, build & integration
+
+GitHub: https://github.com/NOtBobs-Emporium-Of-Wonder
+1 commit on top of CryptoPascal's branch: `62e28233`
+
+**What was added on top:**
+
+| File | What was done |
+|---|---|
+| `pact-tests/Pact/Core/Test/SlhSignaturesTests.hs` | **Hardened** CryptoPascal's original test file — proper `assertFailure` messages, local file fallback before URL download, explicit `parameterSet`/`signatureInterface` fields parsed, all 50+ NIST ACVP test case IDs covered (421–462 raw, 253–322 pure, 268–331 prehash), structured `TestGroup` decoder with optional fields |
+| `pact-tests/SlhDsaTestSuite/prompt.json.xz` | NIST ACVP SLH-DSA sigVer test fixture (504 test cases, 3 parameter sets) — extracted, validated, compressed and committed so tests run offline without network |
+| `README.md` | This file — build docs, KIP-0041 spec summary, attribution |
+| `SHA256SUMS` | SHA256 checksum of compiled `pact-pq` binary |
+| `examples/accounts/accounts.repl` | Removed `(verify ...)` call (not in Pact 5), removed `env-entity` (removed in Pact 5), fixed open transaction state |
+| `examples/cp/cp.repl` | Removed `(verify ...)` call (not in Pact 5) |
+| `.gitignore` | Added `bin/` to exclude the compiled binary from git |
+
+**Build environment work (not committed, but necessary):**
+- Identified `libmpfr-dev` as the missing C dependency blocking `cabal build exe:pact`
+- Installed `libmpfr-dev 4.2.2` via apt
+- Successfully ran `cabal build exe:pact` to completion (GHC 9.6.7, Ubuntu 25.10)
+- Produced the **first compiled Pact 5 binary with SLH-DSA support** (203MB unstripped)
+- Tested `q:` principal recognition, `typeof-principal`, `is-principal` behaviour
+- Installed to `~/bin/pact-pq` and created this release
+
+**Related integration work (separate repositories):**
+- `SLHDSA_FIPS205_HARDENED_TESTS.hs` — standalone hardened test harness (Hyperlane bridge project)
+- `kda-tool-sublime` — Sublime Text plugin with `KdaGenSlhdsaKeysCommand` for PQ key generation
+- `SLH_DSA_TEST_RUNBOOK.md` — documented test pipeline and fixture extraction process
+- `PQ_ROADMAP.md` — tracked all open PRs (#4 pact-5, #19/#23 chainweb-node, #2 KIPs)
+- Hyperlane bridge PQ profile integration (`setup-pq-profile.js`, `.env` managed blocks)
 
 ---
 
