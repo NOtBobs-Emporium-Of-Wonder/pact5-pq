@@ -1,7 +1,7 @@
 # Pact 5 — Post-Quantum Build (SLH-DSA / KIP-0041)
 
 > **Private repository — NOtBobs-Emporium-Of-Wonder**
-> Built: 2026-03-29 | Branch: `post_quantum` | GHC: 9.6.7 | Ubuntu 25.10 x86_64
+> Built: 2026-03-31 | Branch: `post_quantum` | GHC: 9.6.7 | Ubuntu 25.10 x86_64
 
 ---
 
@@ -29,6 +29,7 @@ is ahead of master and adds full SLH-DSA cryptography.
 | Chainweb-specific SLH-DSA context (`CHAINWEB` + Blake2 OID) | ❌ | ✅ |
 | Post-quantum principal validation | ❌ | ✅ |
 | `DisableSlhDsaSignatures` exec config flag | ❌ | ✅ |
+| SLH-DSA keypair generation (`--genkey-pq`) | ❌ | ✅ |
 
 ---
 
@@ -48,6 +49,16 @@ chmod +x bin/pact-pq
 ./bin/pact-pq --version
 # → pact version 5.4
 
+# Generate a post-quantum keypair (NEW)
+./bin/pact-pq --genkey-pq SLH-DSA-SHA2-128s
+# → scheme: SLH-DSA-SHA2-128s
+# → public: <32-byte hex>
+# → secret: <64-byte hex>
+# → account: q:<32-byte hex>
+
+./bin/pact-pq --genkey-pq SLH-DSA-SHA2-192s   # n=24, PK=48B, SK=96B
+./bin/pact-pq --genkey-pq SLH-DSA-SHA2-256s   # n=32, PK=64B, SK=128B
+
 # q: post-quantum principal recognised
 echo '(typeof-principal "q:8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e127103e03b54a74")' | ./bin/pact-pq
 # → "q:"
@@ -57,7 +68,7 @@ echo '(is-principal "k:abc123")' | ./bin/pact-pq
 # → false  (q: and k: are distinct principal types)
 
 # SLH-DSA keyset
-printf '(env-sigs [{"key": "q8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e127103e03b54a74", "caps": []}])\n(at "block-height" (chain-data))\n' | ./bin/pact-pq
+printf '(env-sigs [{"key": "q:8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e127103e03b54a74", "caps": []}])\n(at "block-height" (chain-data))\n' | ./bin/pact-pq
 # → 0  (accepted without error)
 ```
 
@@ -67,11 +78,11 @@ printf '(env-sigs [{"key": "q8e675391075de70e10ab6d5401c5a04dea29131e47c7c616e12
 
 ```
 Source:   kda-community/pact-5  branch: post_quantum
-Commit:   15a22e1b (Feb 26 2026 — "Whitespaces")
+Commit:   b9979ce9 (Mar 31 2026 — "Add SLH-DSA keygen: slhKeyGen (FIPS 205 §9.1) + --genkey-pq flag")
 GHC:      9.6.7
 Cabal:    3.14.2.0
 OS:       Ubuntu 25.10 x86_64
-Built:    2026-03-29
+Built:    2026-03-31
 Size:     203MB (unstripped debug build)
 ```
 
