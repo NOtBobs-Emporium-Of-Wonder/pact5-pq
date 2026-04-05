@@ -1,6 +1,6 @@
 cabal-version:       3.8
 name:                pact-tng
-version:             5.4
+version:             5.4.1
 -- ^ 4 digit is prerelease, 3- or 2-digit for prod release
 synopsis:            Smart contract language library and REPL
 description:
@@ -110,6 +110,7 @@ common pact-common
     , template-haskell
     , pact-tng:unsafe
     , hashes >= 0.3
+    , sbv >= 10.0
 
   ghc-options: -Wall -Werror -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   ghc-prof-options: -fprof-auto -fprof-auto-calls
@@ -310,6 +311,9 @@ library
 
     -- Coverage
     Pact.Core.Coverage.Types
+    Pact.Core.Verify.Types
+    Pact.Core.Verify.Translate
+    Pact.Core.Verify.Engine
 
   extra-libraries: mpfr
 

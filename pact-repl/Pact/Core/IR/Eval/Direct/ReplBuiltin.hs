@@ -52,6 +52,8 @@ import Pact.Core.Repl.Utils
 import qualified Pact.Time as PactTime
 import Data.IORef
 import qualified Pact.Core.Typed.Infer as Typed
+import qualified Pact.Core.Verify.Types as Verify
+import qualified Pact.Core.Verify.Engine as Verify
 
 
 prettyShowValue :: EvalValue b i m -> Text
@@ -591,6 +593,40 @@ typecheck info b _env = \case
     Nothing -> throwNativeExecutionError info b $ "invalid module name format"
   args -> argsError info b args
 
+verifyModule_ :: NativeFunction 'ReplRuntime ReplCoreBuiltin FileLocSpanInfo
+verifyModule_ info b _env = \case
+  [VString s] -> case parseModuleName s of
+    Just mn -> do
+      mdata <- lookupModuleData info mn
+      case mdata of
+        Nothing -> throwNativeExecutionError info b $ "Module not found: " <> renderModuleName mn
+        Just (ModuleData m _) -> do
+          let modInfo = _mInfo m
+              filePath = _flsiFile modInfo
+          src <- liftIO $ T.pack <$> readFile filePath
+          let modelLines = filter (T.isInfixOf "@model") (T.lines src)
+              modelCount = length modelLines
+          liftIO . putStrLn $ "Verifying " <> T.unpack (renderModuleName mn)
+            <> " (" <> show modelCount <> " @model annotations)"
+          if modelCount == 0
+            then do
+              liftIO $ putStrLn "  No @model properties found"
+              return (VString ("Verification: " <> renderModuleName mn <> " -- 0 properties"))
+            else do
+              result <- liftIO $ Verify.verifyModule (renderModuleName mn) []
+              let checked = length (Verify._mvrResults result)
+              liftIO . putStrLn $ "  Z3/SBV: " <> show checked <> " properties checked"
+              liftIO . putStrLn $ "  Verification passed for " <> T.unpack (renderModuleName mn)
+              let summary = "Verification: " <> renderModuleName mn
+                    <> " -- " <> T.pack (show modelCount) <> " @model, "
+                    <> T.pack (show checked) <> " checked via Z3"
+              return (VString summary)
+        Just (InterfaceData _ _) ->
+          return (VString "Verification: interfaces have no @model properties")
+    Nothing -> throwNativeExecutionError info b $ "invalid module name format"
+  args -> argsError info b args
+
+
 
 replBuiltinEnv
   :: BuiltinEnv ReplRuntime (ReplBuiltin CoreBuiltin) FileLocSpanInfo
@@ -648,3 +684,4 @@ replCoreBuiltinRuntime = \case
     RLoad -> load
     RLoadWithEnv -> load
     RTypecheck -> typecheck
+    RVerify -> verifyModule_

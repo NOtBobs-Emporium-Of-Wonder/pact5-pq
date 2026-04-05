@@ -1,0 +1,3 @@
+./bin/pact-pq
+./dist-newstyle/build/x86_64-linux/ghc-9.6.7/pact-tng-5.4.1/x/pact/build/pact/pact
+./pact-tests/legacy-db-regression/pact-v1-chain-9.sqlite
